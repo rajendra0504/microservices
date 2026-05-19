@@ -92,8 +92,42 @@ services:
         condition: service_healthy
       cards:                                                            # ✅ Wait for cards
         condition: service_healthy
+    healthcheck: # ✅ Added missing healthcheck
+      test: "curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
     environment:
       SPRING_APPLICATION_NAME: "accounts"
+    extends:
+      file: common-config.yml
+      service: microservice-eureka-config
+
+  gatewayserver:
+    image: "varam0504/gatewayserver:latest"
+    container_name: gatewayserver-ms
+    ports:
+      - "8072:8072"
+    depends_on:
+      configserver:
+        condition: service_healthy
+      eurekaserver:
+        condition: service_healthy
+      loans:
+        condition: service_healthy
+      cards:
+        condition: service_healthy
+      accounts:
+        condition: service_healthy
+    healthcheck:                                                        # ✅ Added healthcheck
+      test: "curl --fail --silent localhost:8072/actuator/health/readiness | grep UP || exit 1"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    environment:
+      SPRING_APPLICATION_NAME: "gatewayserver"
     extends:
       file: common-config.yml
       service: microservice-eureka-config
